@@ -18,6 +18,7 @@ from datetime import date
 from enum import IntEnum, Enum
 import rag.utils.es_conn
 import rag.utils.infinity_conn
+import datetime
 
 import rag.utils
 from rag.nlp import search
@@ -59,6 +60,15 @@ docStoreConn = None
 retrievaler = None
 kg_retrievaler = None
 
+# SMTP Configuration
+SMTP_SERVER = None
+SMTP_PORT = None
+SMTP_EMAIL = None
+SMTP_PASSWORD = None
+SMTP_SENDER_NAME = None
+
+# Current year for email templates
+CURRENT_YEAR = datetime.datetime.now().year
 
 def init_settings():
     global LLM, LLM_FACTORY, LLM_BASE_URL, LIGHTEN, DATABASE_TYPE, DATABASE
@@ -126,6 +136,32 @@ def init_settings():
 
     retrievaler = search.Dealer(docStoreConn)
     kg_retrievaler = kg_search.KGSearch(docStoreConn)
+
+    # 从配置文件读取 SMTP 设置 (conf/service_conf.yaml)
+    smtp_config = get_base_config("smtp", {})
+    global SMTP_SERVER, SMTP_PORT, SMTP_EMAIL, SMTP_PASSWORD, SMTP_SENDER_NAME
+    
+    # 从 conf/service_conf.yaml 中读取配置，提供默认值
+    SMTP_SERVER = smtp_config.get("server", "smtp.163.com")
+    SMTP_PORT = int(smtp_config.get("port", 465))
+    SMTP_EMAIL = smtp_config.get("email", "stop_loss@163.com")
+    SMTP_PASSWORD = smtp_config.get("password", "Lab4man1")
+    SMTP_SENDER_NAME = smtp_config.get("sender_name", "DOES.AI")
+    
+    # 确保所有必需的 SMTP 配置都有值
+    if not all([SMTP_SERVER, SMTP_PORT, SMTP_EMAIL, SMTP_PASSWORD, SMTP_SENDER_NAME]):
+        print("Warning: Some SMTP configuration values are missing!")
+        print(f"  Server: {SMTP_SERVER}")
+        print(f"  Port: {SMTP_PORT}")
+        print(f"  Email: {SMTP_EMAIL}")
+        print(f"  Password: {'*' * len(SMTP_PASSWORD) if SMTP_PASSWORD else 'None'}")
+        print(f"  Sender: {SMTP_SENDER_NAME}")
+    else:
+        print("SMTP Configuration loaded successfully:")
+        print(f"  Server: {SMTP_SERVER}")
+        print(f"  Port: {SMTP_PORT}")
+        print(f"  Email: {SMTP_EMAIL}")
+        print(f"  Sender: {SMTP_SENDER_NAME}")
 
 
 class CustomEnum(Enum):

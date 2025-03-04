@@ -80,3 +80,10 @@ redis:
 #   switch: false
 #   component: false
 #   dataset: false
+
+smtp:
+  server: smtp.163.com
+  port: 465
+  email: stop_loss@163.com
+  password: Lab4man1
+  sender_name: DOES.AI

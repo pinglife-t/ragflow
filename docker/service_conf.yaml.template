@@ -87,3 +87,10 @@ redis:
 #   switch: false
 #   component: false
 #   dataset: false
+
+smtp:
+  server: ${SMTP_SERVER}
+  port: ${SMTP_PORT}
+  email: ${SMTP_EMAIL}
+  password: ${SMTP_PASSWORD}
+  sender_name: ${SMTP_SENDER_NAME}

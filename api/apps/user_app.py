@@ -42,6 +42,15 @@ from api import settings
 from api.db.services.user_service import UserService, TenantService, UserTenantService
 from api.db.services.file_service import FileService
 from api.utils.api_utils import get_json_result, construct_response
+from utils.verification_code import (
+    generate_verification_code,
+    store_verification_code,
+    verify_code,
+    can_send_verification_code,
+    get_verification_code
+)
+from utils.email_sender import EmailSender
+import time
 
 
 @manager.route("/login", methods=["POST", "GET"])  # noqa: F821
@@ -531,8 +540,71 @@ def user_register(user_id, user):
     return UserService.query(email=user["email"])
 
 
-@manager.route("/register", methods=["POST"])  # noqa: F821
-@validate_request("nickname", "email", "password")
+@manager.route("/send_verification_code", methods=["POST"])
+@validate_request("email")
+def send_verification_code():
+    """Send a verification code to the specified email"""
+    req = request.json
+    email_address = req["email"]
+    logging.info(f"Received verification code request for email: {email_address}")
+    
+    # Validate the email address
+    if not re.match(r"^[\w\._-]+@([\w_-]+\.)+[\w-]{2,}$", email_address):
+        return get_json_result(
+            data=False,
+            message=f"无效的邮箱地址: {email_address}!",
+            code=settings.RetCode.OPERATING_ERROR,
+        )
+
+    # Check if the email address is already registered
+    if UserService.query(email=email_address):
+        return get_json_result(
+            data=False,
+            message=f"邮箱: {email_address} 已经注册!",
+            code=settings.RetCode.OPERATING_ERROR,
+        )
+    
+    # Check rate limiting
+    can_send, remaining_time = can_send_verification_code(email_address)
+    if not can_send:
+        return get_json_result(
+            data=False,
+            message=f"发送验证码过于频繁，请在 {remaining_time} 秒后重试!",
+            code=settings.RetCode.OPERATING_ERROR,
+        )
+    
+    # Generate verification code
+    code = generate_verification_code()
+    logging.info(f"Generated verification code for {email_address}: {code}")
+    
+    if not store_verification_code(email_address, code):
+        logging.error(f"Failed to store verification code for {email_address}")
+        return get_json_result(
+            data=False,
+            message="验证码存储失败，请稍后再试!",
+            code=settings.RetCode.OPERATING_ERROR,
+        )
+    
+    # Send verification code email
+    email_sender = EmailSender()
+    if not email_sender.send_verification_code(email_address, code):
+        logging.error(f"Failed to send verification code to {email_address}")
+        return get_json_result(
+            data=False,
+            message="验证码发送失败，请稍后再试!",
+            code=settings.RetCode.OPERATING_ERROR,
+        )
+    
+    logging.info(f"Verification code sent successfully to {email_address}")
+    return get_json_result(
+        data=True,
+        message="验证码已发送，请查收!",
+        code=settings.RetCode.SUCCESS,
+    )
+
+
+@manager.route("/register", methods=["POST"])
+@validate_request("nickname", "email", "password", "verification_code")
 def user_add():
     """
     Register a new user.
@@ -556,6 +628,9 @@ def user_add():
             password:
               type: string
               description: User password.
+            verification_code:
+              type: string
+              description: Email verification code.
     responses:
       200:
         description: Registration successful.
@@ -564,12 +639,15 @@ def user_add():
     """
     req = request.json
     email_address = req["email"]
+    verification_code = req["verification_code"]
+    
+    logging.info(f"Processing registration for email: {email_address} with code: {verification_code}")
 
     # Validate the email address
     if not re.match(r"^[\w\._-]+@([\w_-]+\.)+[\w-]{2,}$", email_address):
         return get_json_result(
             data=False,
-            message=f"Invalid email address: {email_address}!",
+            message=f"无效的邮箱地址: {email_address}!",
             code=settings.RetCode.OPERATING_ERROR,
         )
 
@@ -577,17 +655,39 @@ def user_add():
     if UserService.query(email=email_address):
         return get_json_result(
             data=False,
-            message=f"Email: {email_address} has already registered!",
+            message=f"邮箱: {email_address} 已经注册!",
+            code=settings.RetCode.OPERATING_ERROR,
+        )
+    
+    # Verify the verification code
+    stored_code = get_verification_code(email_address)
+    logging.info(f"Stored code for {email_address}: {stored_code}")
+    
+    if not verify_code(email_address, verification_code):
+        logging.error(f"Verification failed for {email_address}. Code provided: {verification_code}")
+        return get_json_result(
+            data=False,
+            message="验证码无效或已过期!",
             code=settings.RetCode.OPERATING_ERROR,
         )
 
     # Construct user info data
     nickname = req["nickname"]
+    
+    # 添加密码解密的错误处理
+    try:
+        password = decrypt(req["password"])
+    except Exception as e:
+        logging.error(f"Password decryption error: {str(e)}")
+        logging.error(f"Raw password: {req['password']}")
+        # 如果解密失败，直接使用原始密码
+        password = req["password"]
+    
     user_dict = {
         "access_token": get_uuid(),
         "email": email_address,
         "nickname": nickname,
-        "password": decrypt(req["password"]),
+        "password": password,  # 使用处理后的密码
         "login_channel": "password",
         "last_login_time": get_format_time(),
         "is_superuser": False,
