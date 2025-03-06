@@ -6,34 +6,29 @@ from email.mime.multipart import MIMEMultipart
 from email.header import Header
 from email.utils import formataddr
 from typing import Optional
+from datetime import datetime
 
-import settings
+from api.utils import get_base_config
 
 
 class EmailSender:
     """Utility class for sending emails"""
     
-    def __init__(
-        self,
-        smtp_server: str = None,
-        smtp_port: int = None,
-        sender_email: str = None,
-        sender_password: str = None,
-        sender_name: str = None
-    ):
+    def __init__(self):
         """Initialize EmailSender with SMTP configuration"""
-        # 使用硬编码的默认值
-        self.smtp_server = smtp_server or settings.SMTP_SERVER or "smtp.163.com"
-        self.smtp_port = smtp_port or settings.SMTP_PORT or 465
-        self.sender_email = sender_email or settings.SMTP_EMAIL or "stop_loss@163.com"
-        self.sender_password = sender_password or settings.SMTP_PASSWORD or "Lab4man1"
-        self.sender_name = sender_name or settings.SMTP_SENDER_NAME or "DOES.AI"
+        from api.utils import get_base_config
         
-        logging.info(f"EmailSender initialized with server: {self.smtp_server}:{self.smtp_port}")
+        smtp_config = get_base_config("smtp", {})
+        self.smtp_server = smtp_config.get("server")
+        self.smtp_port = int(smtp_config.get("port")) if smtp_config.get("port") else None
+        self.sender_email = smtp_config.get("email")
+        self.sender_password = smtp_config.get("password")
+        self.sender_name = smtp_config.get("sender_name")
     
     def send_verification_code(self, to_email: str, code: str) -> bool:
         """Send verification code email"""
         subject = "验证码"
+        current_year = datetime.now().year
         html_content = f"""
         <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
             <h2>您的验证码是：{code}</h2>
@@ -42,7 +37,7 @@ class EmailSender:
             <hr>
             <p style="color: #666; font-size: 12px;">
                 此邮件由系统自动发送，请勿回复。
-                <br>© {settings.CURRENT_YEAR} {self.sender_name}
+                <br>© {current_year} {self.sender_name}
             </p>
         </div>
         """
@@ -55,6 +50,10 @@ class EmailSender:
     
     def send_email(self, email_data: dict) -> bool:
         """Send email with the given data"""
+        if not self.smtp_server or not self.smtp_port or not self.sender_email or not self.sender_password:
+            logging.error("Cannot send email: Missing SMTP configuration")
+            return False
+        
         try:
             msg = MIMEMultipart()
             msg['From'] = formataddr((str(Header(self.sender_name, 'utf-8')), self.sender_email))

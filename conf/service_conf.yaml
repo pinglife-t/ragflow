@@ -84,6 +84,6 @@ redis:
 smtp:
   server: smtp.163.com
   port: 465
-  email: stop_loss@163.com
-  password: Lab4man1
+  email: does_ai@163.com
+  password: XXhcd5tTtMVZJXKj
   sender_name: DOES.AI

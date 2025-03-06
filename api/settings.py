@@ -60,16 +60,6 @@ docStoreConn = None
 retrievaler = None
 kg_retrievaler = None
 
-# SMTP Configuration
-SMTP_SERVER = None
-SMTP_PORT = None
-SMTP_EMAIL = None
-SMTP_PASSWORD = None
-SMTP_SENDER_NAME = None
-
-# Current year for email templates
-CURRENT_YEAR = datetime.datetime.now().year
-
 def init_settings():
     global LLM, LLM_FACTORY, LLM_BASE_URL, LIGHTEN, DATABASE_TYPE, DATABASE
     LIGHTEN = int(os.environ.get('LIGHTEN', "0"))
@@ -136,33 +126,6 @@ def init_settings():
 
     retrievaler = search.Dealer(docStoreConn)
     kg_retrievaler = kg_search.KGSearch(docStoreConn)
-
-    # 从配置文件读取 SMTP 设置 (conf/service_conf.yaml)
-    smtp_config = get_base_config("smtp", {})
-    global SMTP_SERVER, SMTP_PORT, SMTP_EMAIL, SMTP_PASSWORD, SMTP_SENDER_NAME
-    
-    # 从 conf/service_conf.yaml 中读取配置
-    SMTP_SERVER = smtp_config.get("server")
-    SMTP_PORT = int(smtp_config.get("port")) if smtp_config.get("port") else None
-    SMTP_EMAIL = smtp_config.get("email")
-    SMTP_PASSWORD = smtp_config.get("password")
-    SMTP_SENDER_NAME = smtp_config.get("sender_name")
-    
-    # 确保所有必需的 SMTP 配置都有值
-    if not all([SMTP_SERVER, SMTP_PORT, SMTP_EMAIL, SMTP_PASSWORD, SMTP_SENDER_NAME]):
-        print("Warning: Some SMTP configuration values are missing!")
-        print(f"  Server: {SMTP_SERVER}")
-        print(f"  Port: {SMTP_PORT}")
-        print(f"  Email: {SMTP_EMAIL}")
-        print(f"  Password: {'*' * len(SMTP_PASSWORD) if SMTP_PASSWORD else 'None'}")
-        print(f"  Sender: {SMTP_SENDER_NAME}")
-    else:
-        print("SMTP Configuration loaded successfully:")
-        print(f"  Server: {SMTP_SERVER}")
-        print(f"  Port: {SMTP_PORT}")
-        print(f"  Email: {SMTP_EMAIL}")
-        print(f"  Sender: {SMTP_SENDER_NAME}")
-
 
 class CustomEnum(Enum):
     @classmethod

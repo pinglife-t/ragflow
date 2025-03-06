@@ -97,10 +97,8 @@ def login():
         )
 
     password = request.json.get("password")
-    print("password from UI", password)
     try:
         password = decrypt(password)
-        print("password after UI decrypt", password)
     except BaseException:
         return get_json_result(
             data=False, code=settings.RetCode.SERVER_ERROR, message="Fail to crypt password"
@@ -554,7 +552,7 @@ def send_verification_code():
     if not re.match(r"^[\w\._-]+@([\w_-]+\.)+[\w-]{2,}$", email_address):
         return get_json_result(
             data=False,
-            message=f"无效的邮箱地址: {email_address}!",
+            message=f"Invalid email address: {email_address}!",
             code=settings.RetCode.OPERATING_ERROR,
         )
 
@@ -562,7 +560,7 @@ def send_verification_code():
     if UserService.query(email=email_address):
         return get_json_result(
             data=False,
-            message=f"邮箱: {email_address} 已经注册!",
+            message=f"Email: {email_address} has already registered!",
             code=settings.RetCode.OPERATING_ERROR,
         )
     
@@ -618,7 +616,7 @@ def user_add():
     if not re.match(r"^[\w\._-]+@([\w_-]+\.)+[\w-]{2,}$", email_address):
         return get_json_result(
             data=False,
-            message=f"无效的邮箱地址: {email_address}!",
+            message=f"Invalid email address: {email_address}!",
             code=settings.RetCode.OPERATING_ERROR,
         )
 
@@ -626,7 +624,7 @@ def user_add():
     if UserService.query(email=email_address):
         return get_json_result(
             data=False,
-            message=f"邮箱: {email_address} 已经注册!",
+            message=f"Email: {email_address} has already registered!",
             code=settings.RetCode.OPERATING_ERROR,
         )
     

@@ -59,10 +59,8 @@ class UserService(CommonService):
         if "id" not in kwargs:
             kwargs["id"] = get_uuid()
         if "password" in kwargs:
-            print(f"Password before hashing in UserService.save: {kwargs['password']}")
             kwargs["password"] = generate_password_hash(
                 str(kwargs["password"]))
-            print(f"Password after hashing in UserService.save: {kwargs['password']}")
 
         kwargs["create_time"] = current_timestamp()
         kwargs["create_date"] = datetime_format(datetime.now())
