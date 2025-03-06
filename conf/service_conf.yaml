@@ -85,5 +85,5 @@ smtp:
   server: smtp.163.com
   port: 465
   email: does_ai@163.com
-  password: XXhcd5tTtMVZJXKj
+  password: XXXXXXXX
   sender_name: DOES.AI
