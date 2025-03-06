@@ -175,37 +175,3 @@ def can_send_verification_code(email: str) -> Tuple[bool, int]:
     except Exception as e:
         print(f"Error checking rate limit: {str(e)}")
         return True, 0  # 出错时允许发送
-
-
-def get_verification_code(email: str) -> Optional[str]:
-    """Get stored verification code (for testing)"""
-    key = f"{VERIFICATION_CODE_PREFIX}{email}"
-    try:
-        stored_data = REDIS_CONN.get(key)
-        
-        if not stored_data:
-            return None
-            
-        if isinstance(stored_data, bytes):
-            stored_data = stored_data.decode('utf-8')
-            
-        # 如果是空字符串，表示已删除
-        if not stored_data:
-            return None
-            
-        data = json.loads(stored_data)
-        code = data.get('code')
-        expires_at = data.get('expires_at', 0)
-        
-        # 检查是否过期
-        if time.time() > expires_at:
-            try:
-                REDIS_CONN.delete(key)
-            except AttributeError:
-                REDIS_CONN.set(key, "")
-            return None
-            
-        return code
-    except Exception as e:
-        print(f"Error getting verification code: {str(e)}")
-        return None 

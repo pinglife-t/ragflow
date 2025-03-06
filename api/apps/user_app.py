@@ -46,11 +46,9 @@ from utils.verification_code import (
     generate_verification_code,
     store_verification_code,
     verify_code,
-    can_send_verification_code,
-    get_verification_code
+    can_send_verification_code
 )
 from utils.email_sender import EmailSender
-import time
 
 
 @manager.route("/login", methods=["POST", "GET"])  # noqa: F821
@@ -99,8 +97,10 @@ def login():
         )
 
     password = request.json.get("password")
+    print("password from UI", password)
     try:
         password = decrypt(password)
+        print("password after UI decrypt", password)
     except BaseException:
         return get_json_result(
             data=False, code=settings.RetCode.SERVER_ERROR, message="Fail to crypt password"
@@ -489,6 +489,8 @@ def rollback_user_registration(user_id):
 
 
 def user_register(user_id, user):
+    logging.info(f"Using Base64 encoded password for registration")
+    
     user["id"] = user_id
     tenant = {
         "id": user_id,
@@ -606,37 +608,6 @@ def send_verification_code():
 @manager.route("/register", methods=["POST"])
 @validate_request("nickname", "email", "password", "verification_code")
 def user_add():
-    """
-    Register a new user.
-    ---
-    tags:
-      - User
-    parameters:
-      - in: body
-        name: body
-        description: Registration details.
-        required: true
-        schema:
-          type: object
-          properties:
-            nickname:
-              type: string
-              description: User nickname.
-            email:
-              type: string
-              description: User email.
-            password:
-              type: string
-              description: User password.
-            verification_code:
-              type: string
-              description: Email verification code.
-    responses:
-      200:
-        description: Registration successful.
-        schema:
-          type: object
-    """
     req = request.json
     email_address = req["email"]
     verification_code = req["verification_code"]
@@ -660,11 +631,7 @@ def user_add():
         )
     
     # Verify the verification code
-    stored_code = get_verification_code(email_address)
-    logging.info(f"Stored code for {email_address}: {stored_code}")
-    
     if not verify_code(email_address, verification_code):
-        logging.error(f"Verification failed for {email_address}. Code provided: {verification_code}")
         return get_json_result(
             data=False,
             message="验证码无效或已过期!",
@@ -673,21 +640,11 @@ def user_add():
 
     # Construct user info data
     nickname = req["nickname"]
-    
-    # 添加密码解密的错误处理
-    try:
-        password = decrypt(req["password"])
-    except Exception as e:
-        logging.error(f"Password decryption error: {str(e)}")
-        logging.error(f"Raw password: {req['password']}")
-        # 如果解密失败，直接使用原始密码
-        password = req["password"]
-    
     user_dict = {
         "access_token": get_uuid(),
         "email": email_address,
         "nickname": nickname,
-        "password": password,  # 使用处理后的密码
+        "password": decrypt(req["password"]),
         "login_channel": "password",
         "last_login_time": get_format_time(),
         "is_superuser": False,

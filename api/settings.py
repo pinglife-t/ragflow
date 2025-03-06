@@ -141,12 +141,12 @@ def init_settings():
     smtp_config = get_base_config("smtp", {})
     global SMTP_SERVER, SMTP_PORT, SMTP_EMAIL, SMTP_PASSWORD, SMTP_SENDER_NAME
     
-    # 从 conf/service_conf.yaml 中读取配置，提供默认值
-    SMTP_SERVER = smtp_config.get("server", "smtp.163.com")
-    SMTP_PORT = int(smtp_config.get("port", 465))
-    SMTP_EMAIL = smtp_config.get("email", "stop_loss@163.com")
-    SMTP_PASSWORD = smtp_config.get("password", "Lab4man1")
-    SMTP_SENDER_NAME = smtp_config.get("sender_name", "DOES.AI")
+    # 从 conf/service_conf.yaml 中读取配置
+    SMTP_SERVER = smtp_config.get("server")
+    SMTP_PORT = int(smtp_config.get("port")) if smtp_config.get("port") else None
+    SMTP_EMAIL = smtp_config.get("email")
+    SMTP_PASSWORD = smtp_config.get("password")
+    SMTP_SENDER_NAME = smtp_config.get("sender_name")
     
     # 确保所有必需的 SMTP 配置都有值
     if not all([SMTP_SERVER, SMTP_PORT, SMTP_EMAIL, SMTP_PASSWORD, SMTP_SENDER_NAME]):

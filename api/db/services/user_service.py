@@ -45,6 +45,9 @@ class UserService(CommonService):
     def query_user(cls, email, password):
         user = cls.model.select().where((cls.model.email == email),
                                         (cls.model.status == StatusEnum.VALID.value)).first()
+        print("user DB password", user.password)
+        print("UI password", password)
+        
         if user and check_password_hash(str(user.password), password):
             return user
         else:
@@ -56,8 +59,10 @@ class UserService(CommonService):
         if "id" not in kwargs:
             kwargs["id"] = get_uuid()
         if "password" in kwargs:
+            print(f"Password before hashing in UserService.save: {kwargs['password']}")
             kwargs["password"] = generate_password_hash(
                 str(kwargs["password"]))
+            print(f"Password after hashing in UserService.save: {kwargs['password']}")
 
         kwargs["create_time"] = current_timestamp()
         kwargs["create_date"] = datetime_format(datetime.now())
