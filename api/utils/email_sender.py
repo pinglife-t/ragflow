@@ -5,7 +5,6 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
 from email.utils import formataddr
-from typing import Optional
 from datetime import datetime
 
 from api.utils import get_base_config
@@ -16,7 +15,6 @@ class EmailSender:
     
     def __init__(self):
         """Initialize EmailSender with SMTP configuration"""
-        from api.utils import get_base_config
         
         smtp_config = get_base_config("smtp", {})
         self.smtp_server = smtp_config.get("server")
