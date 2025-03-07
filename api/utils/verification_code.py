@@ -74,10 +74,7 @@ def verify_code(email: str, code: str) -> bool:
         
         try:
             data = json.loads(stored_data)
-            print(f"Parsed JSON data: {data}")
         except json.JSONDecodeError as e:
-            print(f"JSON decode error: {e}")
-            print(f"Raw data: {stored_data}")
             return False
             
         stored_code = data.get('code')
@@ -89,13 +86,7 @@ def verify_code(email: str, code: str) -> bool:
         # Check if expired
         if time.time() > expires_at:
             print(f"Verification code expired for {email}")
-            try:
-                # Try to use delete method to remove the key
-                REDIS_CONN.delete(key)
-            except AttributeError:
-                # If delete doesn't exist, try using set method with empty value
-                print(f"Using set(None) instead of delete for {key}")
-                REDIS_CONN.set(key, "")
+            REDIS_CONN.REDIS.delete(key)
             return False
             
         # Verify code
@@ -105,14 +96,7 @@ def verify_code(email: str, code: str) -> bool:
         # If validation successful, delete the code
         if is_valid:
             print(f"Deleting verification code for {email}")
-            try:
-                # Try to use delete method to remove the key
-                REDIS_CONN.delete(key)
-            except AttributeError:
-                # If delete doesn't exist, try using set method with empty value
-                print(f"Using set(None) instead of delete for {key}")
-                REDIS_CONN.set(key, "")
-            
+            REDIS_CONN.REDIS.delete(key)            
         return is_valid
     except Exception as e:
         print(f"Error verifying code: {str(e)}")
