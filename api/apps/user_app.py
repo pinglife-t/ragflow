@@ -569,7 +569,7 @@ def send_verification_code():
     if not can_send:
         return get_json_result(
             data=False,
-            message=f"发送验证码过于频繁，请在 {remaining_time} 秒后重试!",
+            message=f"Verification code requests too frequent. Please try again in {remaining_time} seconds!",
             code=settings.RetCode.OPERATING_ERROR,
         )
     
@@ -581,7 +581,7 @@ def send_verification_code():
         logging.error(f"Failed to store verification code for {email_address}")
         return get_json_result(
             data=False,
-            message="验证码存储失败，请稍后再试!",
+            message="Failed to store verification code. Please try again later!",
             code=settings.RetCode.OPERATING_ERROR,
         )
     
@@ -591,14 +591,14 @@ def send_verification_code():
         logging.error(f"Failed to send verification code to {email_address}")
         return get_json_result(
             data=False,
-            message="验证码发送失败，请稍后再试!",
+            message="Failed to send verification code. Please try again later!",
             code=settings.RetCode.OPERATING_ERROR,
         )
     
     logging.info(f"Verification code sent successfully to {email_address}")
     return get_json_result(
         data=True,
-        message="验证码已发送，请查收!",
+        message="Verification code has been sent. Please check your email!",
         code=settings.RetCode.SUCCESS,
     )
 
@@ -632,7 +632,7 @@ def user_add():
     if not verify_code(email_address, verification_code):
         return get_json_result(
             data=False,
-            message="验证码无效或已过期!",
+            message="Invalid or expired verification code!",
             code=settings.RetCode.OPERATING_ERROR,
         )
 
