@@ -45,9 +45,6 @@ class UserService(CommonService):
     def query_user(cls, email, password):
         user = cls.model.select().where((cls.model.email == email),
                                         (cls.model.status == StatusEnum.VALID.value)).first()
-        print("user DB password", user.password)
-        print("UI password", password)
-        
         if user and check_password_hash(str(user.password), password):
             return user
         else:

@@ -18,7 +18,6 @@ from datetime import date
 from enum import IntEnum, Enum
 import rag.utils.es_conn
 import rag.utils.infinity_conn
-import datetime
 
 import rag.utils
 from rag.nlp import search
