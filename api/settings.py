@@ -59,6 +59,7 @@ docStoreConn = None
 retrievaler = None
 kg_retrievaler = None
 
+
 def init_settings():
     global LLM, LLM_FACTORY, LLM_BASE_URL, LIGHTEN, DATABASE_TYPE, DATABASE
     LIGHTEN = int(os.environ.get('LIGHTEN', "0"))
@@ -125,6 +126,7 @@ def init_settings():
 
     retrievaler = search.Dealer(docStoreConn)
     kg_retrievaler = kg_search.KGSearch(docStoreConn)
+
 
 class CustomEnum(Enum):
     @classmethod
