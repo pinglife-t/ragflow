@@ -58,6 +58,9 @@ export default {
       description:
         'Sign up for free to explore top RAG technology. Create knowledge bases and AIs to empower your business.',
       review: 'from 500+ reviews',
+      verificationCodeLabel: 'Verification Code',
+      verificationCodePlaceholder: 'Please enter verification code',
+      sendCode: 'Send Code',
     },
     header: {
       knowledgeBase: 'Knowledge Base',
@@ -731,6 +734,7 @@ This auto-tag feature enhances retrieval by adding another layer of domain-speci
         'There is an abnormality in your network and you cannot connect to the server.',
       networkAnomaly: 'network anomaly',
       hint: 'hint',
+      codeSent: 'Verification code has been sent',
     },
     fileManager: {
       name: 'Name',

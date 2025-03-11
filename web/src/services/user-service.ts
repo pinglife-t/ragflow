@@ -101,6 +101,10 @@ const methods = {
     url: removeSystemToken,
     method: 'delete',
   },
+  sendVerificationCode: {
+    url: '/v1/user/send_verification_code',
+    method: 'post',
+  },
 } as const;
 
 const userService = registerServer<keyof typeof methods>(methods, request);

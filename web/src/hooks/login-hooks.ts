@@ -63,6 +63,7 @@ export const useRegister = () => {
       email: string;
       password: string;
       nickname: string;
+      verification_code: string;
     }) => {
       const { data = {} } = await userService.register(params);
       if (data.code === 0) {
@@ -111,4 +112,35 @@ export const useHandleSubmittable = (form: FormInstance) => {
   }, [form, values]);
 
   return { submittable };
+};
+
+export const useSendVerificationCode = () => {
+  const { t } = useTranslation();
+  const [countdown, setCountdown] = useState(0);
+
+  const { isPending: loading, mutateAsync: sendCode } = useMutation({
+    mutationKey: ['sendVerificationCode'],
+    mutationFn: async (email: string) => {
+      const { data = {} } = await userService.sendVerificationCode({
+        email,
+      });
+
+      if (data.code === 0) {
+        message.success(data.message || t('message.codeSent'));
+        setCountdown(60);
+        const timer = setInterval(() => {
+          setCountdown((prev) => {
+            if (prev <= 1) {
+              clearInterval(timer);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      }
+      return data.code;
+    },
+  });
+
+  return { loading, sendCode, countdown };
 };

@@ -58,6 +58,9 @@ export default {
       description:
         '免费注册以探索顶级 RAG 技术。 创建知识库和人工智能来增强您的业务',
       review: '来自 500 多条评论',
+      verificationCodeLabel: '验证码',
+      verificationCodePlaceholder: '请输入验证码',
+      sendCode: '发送验证码',
     },
     header: {
       knowledgeBase: '知识库',

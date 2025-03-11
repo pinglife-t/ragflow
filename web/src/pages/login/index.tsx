@@ -1,4 +1,8 @@
-import { useLogin, useRegister } from '@/hooks/login-hooks';
+import {
+  useLogin,
+  useRegister,
+  useSendVerificationCode,
+} from '@/hooks/login-hooks';
 import { rsaPsw } from '@/utils';
 import { Button, Checkbox, Form, Input } from 'antd';
 import { useEffect, useState } from 'react';
@@ -14,13 +18,19 @@ const Login = () => {
   const navigate = useNavigate();
   const { login, loading: signLoading } = useLogin();
   const { register, loading: registerLoading } = useRegister();
+  const {
+    sendCode,
+    loading: sendingCode,
+    countdown,
+  } = useSendVerificationCode();
   const { t } = useTranslation('translation', { keyPrefix: 'login' });
-  const loading = signLoading || registerLoading;
+  const loading = signLoading || registerLoading || sendingCode;
 
   const changeTitle = () => {
     setTitle((title) => (title === 'login' ? 'register' : 'login'));
   };
   const [form] = Form.useForm();
+  const [email, setEmail] = useState('');
 
   useEffect(() => {
     form.validateFields(['nickname']);
@@ -45,6 +55,7 @@ const Login = () => {
           nickname: params.nickname,
           email: params.email,
           password: rsaPassWord,
+          verification_code: params.verification_code,
         });
         if (code === 0) {
           setTitle('login');
@@ -55,8 +66,12 @@ const Login = () => {
     }
   };
   const formItemLayout = {
-    labelCol: { span: 6 },
-    // wrapperCol: { span: 8 },
+    labelCol: {
+      span: 24,
+    },
+    wrapperCol: {
+      span: 24,
+    },
   };
 
   const toGoogle = () => {
@@ -89,7 +104,11 @@ const Login = () => {
               label={t('emailLabel')}
               rules={[{ required: true, message: t('emailPlaceholder') }]}
             >
-              <Input size="large" placeholder={t('emailPlaceholder')} />
+              <Input
+                size="large"
+                placeholder={t('emailPlaceholder')}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </Form.Item>
             {title === 'register' && (
               <Form.Item
@@ -99,6 +118,35 @@ const Login = () => {
                 rules={[{ required: true, message: t('nicknamePlaceholder') }]}
               >
                 <Input size="large" placeholder={t('nicknamePlaceholder')} />
+              </Form.Item>
+            )}
+            {title === 'register' && (
+              <Form.Item
+                labelCol={{ span: 24 }}
+                wrapperCol={{ span: 24 }}
+                name="verification_code"
+                label={t('verificationCodeLabel')}
+                rules={[
+                  { required: true, message: t('verificationCodePlaceholder') },
+                ]}
+                className="verification-code-item"
+              >
+                <div className={styles.verificationCodeInput}>
+                  <Input
+                    size="large"
+                    placeholder={t('verificationCodePlaceholder')}
+                    style={{ width: 'calc(100% - 120px)' }}
+                  />
+                  <Button
+                    size="large"
+                    loading={sendingCode}
+                    disabled={!email || countdown > 0}
+                    onClick={() => sendCode(email)}
+                    style={{ width: '120px' }}
+                  >
+                    {countdown > 0 ? `${countdown}s` : t('sendCode')}
+                  </Button>
+                </div>
               </Form.Item>
             )}
             <Form.Item
