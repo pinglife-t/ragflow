@@ -142,7 +142,7 @@ const Login = () => {
                     loading={sendingCode}
                     disabled={!email || countdown > 0}
                     onClick={() => sendCode(email)}
-                    style={{ width: '120px' }}
+                    style={{ width: 'calc(140px)' }}
                   >
                     {countdown > 0 ? `${countdown}s` : t('sendCode')}
                   </Button>
