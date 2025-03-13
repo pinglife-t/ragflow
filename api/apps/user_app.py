@@ -486,9 +486,7 @@ def rollback_user_registration(user_id):
         pass
 
 
-def user_register(user_id, user):
-    logging.info(f"Using Base64 encoded password for registration")
-    
+def user_register(user_id, user):    
     user["id"] = user_id
     tenant = {
         "id": user_id,
@@ -546,7 +544,6 @@ def send_verification_code():
     """Send a verification code to the specified email"""
     req = request.json
     email_address = req["email"]
-    logging.info(f"Received verification code request for email: {email_address}")
     
     # Validate the email address
     if not re.match(r"^[\w\._-]+@([\w_-]+\.)+[\w-]{2,}$", email_address):

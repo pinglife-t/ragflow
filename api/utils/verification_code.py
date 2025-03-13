@@ -2,6 +2,7 @@ import random
 import string
 import time
 import json
+import logging
 from typing import Tuple, Optional
 
 from rag.utils.redis_conn import REDIS_CONN
@@ -38,7 +39,7 @@ def store_verification_code(email: str, code: str, expiry: int = VERIFICATION_CO
             'expires_at': int(time.time()) + expiry
         }
         json_data = json.dumps(data)
-        print(f"Storing verification code for {email}: {json_data}")
+        logging.info(f"Storing verification code for {email}: {json_data}")
         REDIS_CONN.set(key, json_data)
         
         # Verify storage was successful
@@ -46,13 +47,12 @@ def store_verification_code(email: str, code: str, expiry: int = VERIFICATION_CO
         if stored:
             if isinstance(stored, bytes):
                 stored = stored.decode('utf-8')
-            print(f"Verification code stored successfully: {stored}")
         else:
-            print(f"Failed to store verification code for {email}")
+            logging.error(f"Failed to store verification code for {email}")
         
         return True
     except Exception as e:
-        print(f"Error storing verification code: {str(e)}")
+        logging.error(f"Error storing verification code: {str(e)}")
         return False
 
 
@@ -61,17 +61,14 @@ def verify_code(email: str, code: str) -> bool:
     key = f"{VERIFICATION_CODE_PREFIX}{email}"
     try:
         stored_data = REDIS_CONN.get(key)
-        print(f"Verifying code for {email}. Stored data: {stored_data}")
+        logging.debug(f"Verifying code for {email}. Stored data: {stored_data}")
         
         if not stored_data:
-            print(f"No verification code found for {email}")
             return False
             
         if isinstance(stored_data, bytes):
             stored_data = stored_data.decode('utf-8')
-            
-        print(f"Decoded stored data: {stored_data}")
-        
+                    
         try:
             data = json.loads(stored_data)
         except json.JSONDecodeError as e:
@@ -79,27 +76,24 @@ def verify_code(email: str, code: str) -> bool:
             
         stored_code = data.get('code')
         expires_at = data.get('expires_at', 0)
-        
-        print(f"Stored code: {stored_code}, Provided code: {code}")
-        print(f"Expires at: {expires_at}, Current time: {int(time.time())}")
-        
+                
         # Check if expired
         if time.time() > expires_at:
-            print(f"Verification code expired for {email}")
+            logging.info(f"Verification code expired for {email}")
             REDIS_CONN.REDIS.delete(key)
             return False
             
         # Verify code
         is_valid = stored_code == code
-        print(f"Code validation result: {is_valid}")
         
         # If validation successful, delete the code
         if is_valid:
-            print(f"Deleting verification code for {email}")
-            REDIS_CONN.REDIS.delete(key)            
+            logging.info(f"Deleting verification code for {email}")
+            REDIS_CONN.REDIS.delete(key)
+            
         return is_valid
     except Exception as e:
-        print(f"Error verifying code: {str(e)}")
+        logging.error(f"Error verifying code: {str(e)}")
         return False
 
 
@@ -157,5 +151,5 @@ def can_send_verification_code(email: str) -> Tuple[bool, int]:
         return True, 0
         
     except Exception as e:
-        print(f"Error checking rate limit: {str(e)}")
+        logging.error(f"Error checking rate limit: {str(e)}")
         return True, 0  # Allow sending when error occurs

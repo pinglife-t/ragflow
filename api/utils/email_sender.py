@@ -67,21 +67,16 @@ class EmailSender:
             else:
                 server = smtplib.SMTP(self.smtp_server, self.smtp_port)
                 server.starttls()
-            
-            logging.info(f"Connecting to SMTP server: {self.smtp_server}:{self.smtp_port}")
-            
+                        
             # Login
             server.login(self.sender_email, self.sender_password)
-            logging.info(f"Logged in as {self.sender_email}")
             
             # Send email
             recipients = [email_data["to_email"]]
             if "cc_email" in email_data and email_data["cc_email"]:
                 recipients.extend(email_data["cc_email"].split(','))
             
-            server.send_message(msg, self.sender_email, recipients)
-            logging.info(f"Email sent successfully to {recipients}")
-            
+            server.send_message(msg, self.sender_email, recipients)            
             server.quit()
             return True
             
